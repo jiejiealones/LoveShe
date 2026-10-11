@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
+  <title id="title">LoveShe 私人聊天军师</title>
+  <desc id="desc">真实聊天、独立记忆、自然表达。基于聊天历史与长期记忆的私人沟通工作台。</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#183e36"/><stop offset="1" stop-color="#326f5f"/></linearGradient>
+  </defs>
+  <rect width="1200" height="330" rx="24" fill="url(#bg)"/>
+  <circle cx="1100" cy="15" r="200" fill="#fff" opacity=".035"/>
+  <circle cx="1070" cy="330" r="190" fill="#fff" opacity=".035"/>
+  <g font-family="Microsoft YaHei, PingFang SC, sans-serif">
+    <rect x="56" y="54" width="54" height="54" rx="17" fill="#e5f0df"/>
+    <text x="83" y="94" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="43" font-weight="bold" fill="#285e4f">L</text>
+    <text x="130" y="95" fill="#fff" font-size="46" font-weight="700">LoveShe</text>
+    <text x="57" y="160" fill="#fff" font-size="31" font-weight="600">带着记忆，接上每一段对话。</text>
+    <text x="58" y="205" fill="#d4e7df" font-size="18">以聊天记录为基础 · 以联系人记忆为核心 · 由你决定如何表达</text>
+    <rect x="58" y="248" width="124" height="32" rx="16" fill="#edf3e6"/>
+    <text x="120" y="270" text-anchor="middle" fill="#214d41" font-size="14">Windows 实验版</text>
+    <text x="203" y="270" fill="#c9ded4" font-size="14">v0.1.0 / 本机工作台 / 可配置模型</text>
+    <g transform="translate(785 65)">
+      <rect width="330" height="202" rx="19" fill="#f5f8f0"/>
+      <circle cx="28" cy="28" r="6" fill="#7ba68c"/>
+      <text x="45" y="34" fill="#31574b" font-size="15">联系人记忆 → 当前对话</text>
+      <rect x="22" y="54" width="231" height="40" rx="12" fill="#e3eddf"/>
+      <text x="36" y="80" fill="#31574b" font-size="15">记住背景，也允许关系改变。</text>
+      <rect x="67" y="107" width="241" height="40" rx="12" fill="#2d6554"/>
+      <text x="81" y="133" fill="#fff" font-size="15">理解当下，选择适合的表达。</text>
+      <text x="23" y="178" fill="#778c7d" font-size="12">示意图 · 具体界面见下方运行截图</text>
+    </g>
+  </g>
+</svg>

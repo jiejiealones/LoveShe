@@ -1,0 +1,9 @@
+{
+  "source": "weflow-cli",
+  "messages": [
+    {"localId": 1, "createTime": 1750000000, "isSend": 1, "localType": 1, "content": "这周六下午要不要去看展？"},
+    {"localId": 2, "createTime": 1750000300, "isSend": 0, "localType": 1, "content": "可以呀，不过我六点前得回家。"},
+    {"localId": 3, "createTime": 1750000600, "isSend": 1, "localType": 1, "content": "好，那我们两点见，五点半结束。"},
+    {"localId": 4, "createTime": 1750000900, "isSend": 0, "localType": 1, "content": "好，周六见。"}
+  ]
+}

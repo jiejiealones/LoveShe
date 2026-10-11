@@ -1,0 +1,8 @@
+[
+  {"timestamp":"2026-01-05T14:00:00+08:00","sender":"me","content":"周末一起看展吗？"},
+  {"timestamp":"2026-01-05T14:02:00+08:00","sender":"them","content":"周六下午可以，不过六点前要回家。"},
+  {"timestamp":"2026-01-05T14:05:00+08:00","sender":"me","content":"那我们两点见，五点半结束。"},
+  {"timestamp":"2026-01-05T14:06:00+08:00","sender":"them","content":"好，周六见。"},
+  {"timestamp":"2026-01-11T18:00:00+08:00","sender":"them","content":"昨天的展挺有趣，下次也可以去看看摄影展。"},
+  {"timestamp":"2026-01-11T18:05:00+08:00","sender":"me","content":"好呀，有合适的展我发给你。"}
+]

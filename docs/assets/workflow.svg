@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" role="img" aria-labelledby="title desc">
+  <title id="title">LoveShe 使用闭环</title>
+  <desc id="desc">聊天导入，联系人记忆，咨询与回复，用户反馈，再以新增对话和反馈更新记忆。</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#759584" stroke-width="1.4"/></marker></defs>
+  <rect width="1200" height="260" rx="20" fill="#f2f6ee"/>
+  <g font-family="Microsoft YaHei, PingFang SC, sans-serif">
+    <text x="36" y="43" fill="#284f41" font-size="20" font-weight="600">一次整理，持续用于后续交流</text>
+    <g fill="#fff" stroke="#dae5d6"><rect x="36" y="72" width="242" height="105" rx="14"/><rect x="330" y="72" width="242" height="105" rx="14"/><rect x="624" y="72" width="242" height="105" rx="14"/><rect x="918" y="72" width="246" height="105" rx="14"/></g>
+    <g fill="#2b614f" font-size="21" font-weight="600"><text x="56" y="109">01  导入聊天</text><text x="350" y="109">02  联系人记忆</text><text x="644" y="109">03  咨询与回复</text><text x="938" y="109">04  记录反馈</text></g>
+    <g fill="#6b7d6e" font-size="14"><text x="56" y="142">手动 JSON / 可选微信轮询</text><text x="350" y="142">事件、人物画像与关系摘要</text><text x="644" y="142">记忆 + 近期对话 → 建议</text><text x="938" y="142">自行发送，记录实际结果</text></g>
+    <g fill="none" stroke="#759584" stroke-width="2" marker-end="url(#arrow)"><path d="M284 124H321"/><path d="M578 124H615"/><path d="M872 124H909"/><path d="M1040 185V224H451V186"/></g>
+    <rect x="588" y="209" width="314" height="27" rx="13" fill="#f2f6ee"/>
+    <text x="745" y="228" fill="#52705d" font-size="14" text-anchor="middle">新增对话与反馈 → 按天整理，滚动更新</text>
+  </g>
+</svg>

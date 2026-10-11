@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loveshe"
+version = "0.1.0"
+description = "Local chat history, contact memory, and communication suggestions"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+dependencies = []
+classifiers = ["Development Status :: 3 - Alpha", "Operating System :: Microsoft :: Windows", "Programming Language :: Python :: 3"]
+
+[project.scripts]
+loveshe = "loveshe.__main__:main"
+loveshe-server = "loveshe.server:main"
+loveshe-configure = "loveshe.configure:main"
+
+[tool.setuptools.packages.find]
+include = ["loveshe*"]
+
+[tool.setuptools.package-data]
+loveshe = ["static/*.html", "static/*.css", "static/*.js"]

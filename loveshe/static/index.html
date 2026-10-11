@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="loveshe-token" content="__TOKEN__">
+  <title>LoveShe · 私人聊天军师</title>
+  <link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="LoveShe 首页"><span class="brand-icon">L</span><div>LoveShe<small>把关系，慢慢看清</small></div></a>
+    <div class="side-label">你的联系人 <button id="add-contact" class="icon-button" aria-label="新增联系人">＋</button></div>
+    <div id="contacts" class="contacts"></div>
+    <div class="side-footer"><span class="status-dot"></span> 本机存储 · 由你掌控<small id="model-label">模型未配置</small></div>
+  </aside>
+  <main>
+    <header class="topbar"><div><span class="eyebrow">私人沟通工作台</span><h1 id="contact-name">欢迎使用 LoveShe</h1></div><button id="edit-profile" class="secondary">联系人档案</button></header>
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <div id="tasks" aria-live="polite"></div>
+    <nav id="tabs" aria-label="工作台导航">
+      <button data-tab="overview" class="active">关系概览</button><button data-tab="history">聊天记录</button>
+      <button data-tab="advisor">军师咨询</button><button data-tab="replies">回复建议</button><button data-tab="memory">长期记忆</button><button data-tab="data">数据管理</button>
+    </nav>
+    <section id="content"></section>
+    <footer class="main-footer">建议由你决定是否采用。事实、推测与未知，都值得被分清。</footer>
+  </main>
+  <dialog id="modal"><div id="modal-body"></div><button class="modal-x icon-button" id="close-modal" aria-label="关闭">×</button></dialog>
+</body>
+</html>

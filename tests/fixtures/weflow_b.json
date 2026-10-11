@@ -1,0 +1,7 @@
+{
+  "source": "weflow-cli",
+  "messages": [
+    {"localId": 10, "createTime": 1750080000, "isSend": 0, "localType": 1, "content": "我下周开始出差。"},
+    {"localId": 11, "createTime": 1750080600, "isSend": 1, "localType": 1, "content": "一路顺利，回来再约饭。"}
+  ]
+}
