@@ -43,7 +43,7 @@ class PublicReleaseTests(unittest.TestCase):
                     "model": "fictional-model", "api_key": "fictional-test-secret"}
         save_settings(settings)
         self.assertEqual(model_settings(), settings)
-        self.assertEqual(config_path().parent, self.root)
+        self.assertTrue(config_path().parent.samefile(self.root))
         self.assertNotIn(settings["api_key"], json.dumps(public_model_info()))
         self.assertTrue(public_model_info()["configured"])
         with patch.dict(os.environ, {"LOVESHE_MODEL": "different-model"}):
