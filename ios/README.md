@@ -57,7 +57,9 @@ xcodebuild test -project ios/LoveShe.xcodeproj -scheme LoveShe \
 3. 在云端 macOS 构建服务或受信任的 Mac 上配置分发证书、描述文件和 App Store Connect 上传凭证，生成签名 Archive，上传 TestFlight。
 4. iPhone 安装 TestFlight，接受测试邀请，再安装 LoveShe。模型配置、联系人和数据在这台手机上创建，不会从桌面自动同步。
 
-这一步需要用户拥有相应 Apple 账号及支付能力。证书私钥、API 密钥和描述文件仅保存在受限 CI secrets 中，不发到聊天或提交仓库。当前检查工作流没有签名上传步骤，避免将模拟器产物误当作真机安装包。
+这一步需要用户拥有相应 Apple 账号及支付能力。证书私钥、API 密钥和描述文件仅保存在受限 CI secrets 中，不发到聊天或提交仓库。模拟器检查工作流没有签名上传步骤，避免将模拟器产物误当作真机安装包。
+
+另提供手动签名工作流 `.github/workflows/ios-sign.yml`，配置方法见 [云端签名说明](SIGNING.md)。只有手动触发、配置签名凭证后才会构建真机包；上传 TestFlight 还需要单独勾选。这个流程尚未用真实 Apple 签名凭证执行。
 
 如果不购买开发者会员，可以借助一台受信任的 Mac 和个人 Apple 账号通过 Xcode 进行有限期的设备测试；这不是无需维护的长期分发方式。
 

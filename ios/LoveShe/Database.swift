@@ -290,6 +290,10 @@ actor Database {
         }
         defer { sqlite3_close(target) }
         try Self.copyDatabase(from: db, to: target)
+        // Export a self-contained file: it must not require a companion WAL/SHM.
+        guard sqlite3_exec(target, "PRAGMA journal_mode=DELETE", nil, nil, nil) == SQLITE_OK else {
+            throw AppError("备份已复制，但无法整理成独立文件。")
+        }
         try Self.protect(destination)
     }
 
@@ -301,16 +305,20 @@ actor Database {
             sqlite3_close(imported); throw AppError("无法读取备份。")
         }
         defer { sqlite3_close(imported) }
-        func scalar(_ sql: String) throws -> String {
+        func scalar(_ sql: String, stage: String) throws -> String {
             var prepared: OpaquePointer?
-            guard sqlite3_prepare_v2(imported, sql, -1, &prepared, nil) == SQLITE_OK, let prepared else { throw AppError("备份格式无效。") }
+            guard sqlite3_prepare_v2(imported, sql, -1, &prepared, nil) == SQLITE_OK, let prepared else {
+                throw AppError("备份\(stage)无法读取（SQLite \(sqlite3_errcode(imported))）。")
+            }
             defer { sqlite3_finalize(prepared) }
-            guard sqlite3_step(prepared) == SQLITE_ROW, let value = sqlite3_column_text(prepared, 0) else { throw AppError("备份格式无效。") }
+            guard sqlite3_step(prepared) == SQLITE_ROW, let value = sqlite3_column_text(prepared, 0) else {
+                throw AppError("备份\(stage)校验失败（SQLite \(sqlite3_errcode(imported))）。")
+            }
             return String(cString: value)
         }
-        guard try scalar("PRAGMA quick_check") == "ok",
-              try scalar("PRAGMA user_version") == "1",
-              try scalar("SELECT value FROM app_metadata WHERE key='format'") == "loveshe-ios-v1" else {
+        guard try scalar("PRAGMA quick_check", stage: "完整性") == "ok",
+              try scalar("PRAGMA user_version", stage: "版本") == "1",
+              try scalar("SELECT value FROM app_metadata WHERE key='format'", stage: "格式标记") == "loveshe-ios-v1" else {
             throw AppError("只支持此 iOS 版本导出的完整备份，不支持 Windows 数据库直接恢复。")
         }
         // Reject views/triggers and validate the entire schema, not just the marker.

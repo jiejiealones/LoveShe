@@ -1,0 +1,142 @@
+name: iOS signed build (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_testflight:
+        description: 'Upload the signed build to your App Store Connect account'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  signed-build:
+    runs-on: macos-15
+    environment: ios-release
+    timeout-minutes: 35
+    env:
+      IOS_TEAM_ID: '${{ vars.IOS_TEAM_ID }}'
+      IOS_BUNDLE_ID: '${{ vars.IOS_BUNDLE_ID }}'
+      IOS_DISTRIBUTION_P12_BASE64: '${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}'
+      IOS_P12_PASSWORD: '${{ secrets.IOS_P12_PASSWORD }}'
+      IOS_PROFILE_BASE64: '${{ secrets.IOS_PROFILE_BASE64 }}'
+      ASC_PRIVATE_KEY_BASE64: '${{ secrets.ASC_PRIVATE_KEY_BASE64 }}'
+      ASC_KEY_ID: '${{ vars.ASC_KEY_ID }}'
+      ASC_ISSUER_ID: '${{ vars.ASC_ISSUER_ID }}'
+      UPLOAD_TO_TESTFLIGHT: '${{ inputs.upload_to_testflight }}'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate configuration
+        run: |
+          python3 - <<'PY'
+          import os, re
+          required = ['IOS_TEAM_ID', 'IOS_BUNDLE_ID', 'IOS_DISTRIBUTION_P12_BASE64', 'IOS_P12_PASSWORD', 'IOS_PROFILE_BASE64']
+          if os.environ['UPLOAD_TO_TESTFLIGHT'] == 'true':
+              required += ['ASC_PRIVATE_KEY_BASE64', 'ASC_KEY_ID', 'ASC_ISSUER_ID']
+          missing = [name for name in required if not os.environ.get(name)]
+          if missing:
+              raise SystemExit('Configure missing environment variables/secrets: ' + ', '.join(missing))
+          if not re.fullmatch(r'[A-Z0-9]{10}', os.environ['IOS_TEAM_ID']):
+              raise SystemExit('Invalid Apple Team ID')
+          bundle = os.environ['IOS_BUNDLE_ID']
+          if not re.fullmatch(r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+', bundle) or bundle.startswith('com.example.'):
+              raise SystemExit('Set your own registered Bundle ID')
+          if os.environ['UPLOAD_TO_TESTFLIGHT'] == 'true':
+              if not re.fullmatch(r'[A-Z0-9]{10}', os.environ['ASC_KEY_ID']):
+                  raise SystemExit('Invalid App Store Connect Key ID')
+              if not re.fullmatch(r'[0-9a-fA-F-]{36}', os.environ['ASC_ISSUER_ID']):
+                  raise SystemExit('Invalid App Store Connect Issuer ID')
+          PY
+      - name: Select current Xcode
+        run: python3 scripts/select_ios_xcode.py
+      - name: Decode signing material
+        run: |
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          directory = Path(os.environ['RUNNER_TEMP']) / 'LoveSheSigning'
+          directory.mkdir(mode=0o700)
+          for variable, name in [('IOS_DISTRIBUTION_P12_BASE64', 'distribution.p12'), ('IOS_PROFILE_BASE64', 'profile.mobileprovision')]:
+              path = directory / name
+              path.write_bytes(base64.b64decode(os.environ[variable], validate=True))
+              path.chmod(0o600)
+          PY
+          security cms -D -i "$RUNNER_TEMP/LoveSheSigning/profile.mobileprovision" > "$RUNNER_TEMP/LoveSheSigning/profile.plist"
+          python3 - <<'PY'
+          import datetime, os, plistlib, shutil
+          from pathlib import Path
+          directory = Path(os.environ['RUNNER_TEMP']) / 'LoveSheSigning'
+          profile = plistlib.loads((directory / 'profile.plist').read_bytes())
+          expected = os.environ['IOS_TEAM_ID'] + '.' + os.environ['IOS_BUNDLE_ID']
+          if profile.get('TeamIdentifier') != [os.environ['IOS_TEAM_ID']] or profile['Entitlements'].get('application-identifier') != expected:
+              raise SystemExit('Profile Team ID or Bundle ID does not match')
+          if profile['Entitlements'].get('get-task-allow') or profile.get('ProvisionedDevices') or profile.get('ProvisionsAllDevices'):
+              raise SystemExit('Use an App Store distribution profile, not a development/ad hoc/enterprise profile')
+          if profile['ExpirationDate'] <= datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None):
+              raise SystemExit('Provisioning profile expired')
+          name, uuid = profile['Name'], profile['UUID']
+          if any(char in name + uuid for char in '\r\n/'):
+              raise SystemExit('Invalid profile metadata')
+          profiles = Path.home() / 'Library/Developer/Xcode/UserData/Provisioning Profiles'
+          profiles.mkdir(parents=True, exist_ok=True)
+          installed = profiles / (uuid + '.mobileprovision')
+          shutil.copyfile(directory / 'profile.mobileprovision', installed)
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('IOS_PROFILE_NAME=' + name + '\nIOS_PROFILE_PATH=' + str(installed) + '\n')
+          options = {'method': 'app-store-connect', 'teamID': os.environ['IOS_TEAM_ID'], 'signingStyle': 'manual',
+                     'provisioningProfiles': {os.environ['IOS_BUNDLE_ID']: name}, 'uploadSymbols': True}
+          (directory / 'ExportOptions.plist').write_bytes(plistlib.dumps(options))
+          PY
+      - name: Install temporary signing keychain
+        run: |
+          keychain="$RUNNER_TEMP/LoveSheSigning/signing.keychain-db"
+          keychain_password=$(openssl rand -base64 32)
+          echo "::add-mask::$keychain_password"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/LoveSheSigning/distribution.p12" -P "$IOS_P12_PASSWORD" -k "$keychain" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain"
+      - name: Archive signed iPhone app
+        run: |
+          xcodebuild archive -project ios/LoveShe.xcodeproj -scheme LoveShe \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/LoveShe.xcarchive" \
+            DEVELOPMENT_TEAM="$IOS_TEAM_ID" PRODUCT_BUNDLE_IDENTIFIER="$IOS_BUNDLE_ID" \
+            CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' \
+            PROVISIONING_PROFILE_SPECIFIER="$IOS_PROFILE_NAME"
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/LoveShe.xcarchive" \
+            -exportPath "$RUNNER_TEMP/LoveSheIPA" \
+            -exportOptionsPlist "$RUNNER_TEMP/LoveSheSigning/ExportOptions.plist"
+      - name: Upload signed IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LoveShe-signed-ipa
+          path: '${{ runner.temp }}/LoveSheIPA/*.ipa'
+          retention-days: 7
+      - name: Upload to TestFlight when explicitly selected
+        if: inputs.upload_to_testflight
+        run: |
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          directory = Path.home() / '.appstoreconnect/private_keys'
+          directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+          path = directory / ('AuthKey_' + os.environ['ASC_KEY_ID'] + '.p8')
+          path.write_bytes(base64.b64decode(os.environ['ASC_PRIVATE_KEY_BASE64'], validate=True))
+          path.chmod(0o600)
+          PY
+          ipa=$(python3 -c 'import os; from pathlib import Path; files=list((Path(os.environ["RUNNER_TEMP"])/"LoveSheIPA").glob("*.ipa")); assert len(files)==1; print(files[0])')
+          xcrun altool --upload-app --type ios --file "$ipa" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+      - name: Remove signing material
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/LoveSheSigning/signing.keychain-db" ]; then
+            security delete-keychain "$RUNNER_TEMP/LoveSheSigning/signing.keychain-db"
+          fi
+          if [ -n "$IOS_PROFILE_PATH" ]; then rm -f "$IOS_PROFILE_PATH"; fi
+          if [ -n "$ASC_KEY_ID" ]; then rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"; fi
+          rm -rf "$RUNNER_TEMP/LoveSheSigning"

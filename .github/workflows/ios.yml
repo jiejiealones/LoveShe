@@ -33,13 +33,19 @@ jobs:
           with open(os.environ['GITHUB_ENV'], 'a') as output:
               output.write('IOS_SIMULATOR_ID=' + available[0]['udid'] + '\n')
           PY
+      - name: Boot selected simulator
+        timeout-minutes: 5
+        run: |
+          xcrun simctl boot "$IOS_SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$IOS_SIMULATOR_ID" -b
       - name: Run native tests
         run: |
           xcodebuild test -project ios/LoveShe.xcodeproj -scheme LoveShe \
             -destination "platform=iOS Simulator,id=$IOS_SIMULATOR_ID" \
             -derivedDataPath "$RUNNER_TEMP/LoveSheBuild" \
             -resultBundlePath "$RUNNER_TEMP/LoveSheTests.xcresult" \
-            CODE_SIGNING_ALLOWED=NO
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
