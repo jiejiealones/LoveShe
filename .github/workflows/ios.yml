@@ -1,0 +1,55 @@
+name: iOS simulator checks
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['ios/**', 'scripts/generate_ios_project.py', '.github/workflows/ios.yml']
+  push:
+    branches: [main]
+    paths: ['ios/**', 'scripts/generate_ios_project.py', '.github/workflows/ios.yml']
+permissions:
+  contents: read
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify generated project
+        run: |
+          python3 scripts/generate_ios_project.py
+          git diff --exit-code -- ios/LoveShe.xcodeproj
+      - name: Select an available iPhone simulator
+        run: |
+          xcodebuild -version
+          xcrun simctl list devices available --json > "$RUNNER_TEMP/simulators.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          devices = json.loads((Path(os.environ['RUNNER_TEMP']) / 'simulators.json').read_text())['devices']
+          available = [device for runtime, rows in devices.items() if 'iOS' in runtime for device in rows
+                       if device.get('isAvailable') and device['name'].startswith('iPhone')]
+          if not available:
+              raise SystemExit('No available iPhone simulator')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('IOS_SIMULATOR_ID=' + available[0]['udid'] + '\n')
+          PY
+      - name: Run native tests
+        run: |
+          xcodebuild test -project ios/LoveShe.xcodeproj -scheme LoveShe \
+            -destination "platform=iOS Simulator,id=$IOS_SIMULATOR_ID" \
+            -derivedDataPath "$RUNNER_TEMP/LoveSheBuild" \
+            -resultBundlePath "$RUNNER_TEMP/LoveSheTests.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LoveShe-native-test-results
+          path: '${{ runner.temp }}/LoveSheTests.xcresult'
+          if-no-files-found: ignore
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: LoveShe-simulator-app
+          path: '${{ runner.temp }}/LoveSheBuild/Build/Products/Debug-iphonesimulator/LoveShe.app'
+          retention-days: 7

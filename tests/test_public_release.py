@@ -40,7 +40,7 @@ class PublicReleaseTests(unittest.TestCase):
 
     def test_private_config_override_and_no_key_in_public_info(self):
         settings = {"backend": "api", "api_base": "https://example.invalid/v1",
-                    "model": "fictional-model", "api_key": "fictional-test-secret"}
+                    "model": "fictional-model", "api_key": "fictional-test-secret"}  # pragma: allowlist secret -- fictional fixture
         save_settings(settings)
         self.assertEqual(model_settings(), settings)
         self.assertTrue(config_path().parent.samefile(self.root))
@@ -52,9 +52,10 @@ class PublicReleaseTests(unittest.TestCase):
     def test_invalid_configuration_does_not_replace_existing(self):
         settings = {"backend": "codex", "api_base": "", "model": "fictional-model", "api_key": ""}
         save_settings(settings)
+        # pragma: allowlist nextline secret -- invalid credential URL test
         for base in ("https://user:secret@example.invalid/v1", "https://example.invalid/v1?key=secret", "http://example.invalid/v1"):
             with self.assertRaises(ValueError):
-                save_settings({**settings, "backend": "api", "api_key": "fictional-secret", "api_base": base})
+                save_settings({**settings, "backend": "api", "api_key": "fictional-secret", "api_base": base})  # pragma: allowlist secret -- fictional fixture
         self.assertEqual(model_settings(), settings)
         config_path().write_text("invalid-json", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "配置无法读取"):

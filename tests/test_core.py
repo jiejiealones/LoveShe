@@ -83,6 +83,7 @@ class PilotTests(unittest.TestCase):
             self.assertNotIn("真实反馈线索", no_context[1]["content"])
             mock_response = io.BytesIO(json.dumps({"choices": [{"message": {"content": "建议草稿"}}]}).encode())
             with patch.dict("os.environ", {"LOVESHE_API_BASE": "https://example.invalid/v1",
+                                        # pragma: allowlist nextline secret -- fictional offline fixture
                                         "LOVESHE_MODEL": "test", "LOVESHE_API_KEY": "secret"}), \
                  patch("urllib.request.urlopen", return_value=mock_response) as post:
                 sent = call_model(db, "a", "advise", "怎么回复？", preview_only=False)
