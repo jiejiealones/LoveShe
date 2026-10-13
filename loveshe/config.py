@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 
 
 ENV_KEYS = {"backend": "LOVESHE_BACKEND", "api_base": "LOVESHE_API_BASE",
-            "model": "LOVESHE_MODEL", "api_key": "LOVESHE_API_KEY"}
+            "model": "LOVESHE_MODEL", "api_key": "LOVESHE_API_KEY"}  # pragma: allowlist secret -- environment variable name
 
 
 def config_path():

@@ -17,3 +17,11 @@ build/
 dist/
 release/
 .ruff_cache/
+DerivedData/
+*.xcresult/
+xcuserdata/
+*.ipa
+*.xcarchive/
+*.p12
+*.mobileprovision
+*.p8

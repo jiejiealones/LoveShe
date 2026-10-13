@@ -8,17 +8,19 @@ ROOT = Path(__file__).resolve().parent.parent
 ROOT_FILES = {".gitignore", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
               "SECURITY.md", "CONTRIBUTING.md", "CHANGELOG.md", "pyproject.toml",
               "config.example.json", "启动LoveShe.cmd", "配置模型.cmd"}
-FOLDERS = {"loveshe", "tests", "examples", "docs", "scripts", ".github"}
-SUFFIXES = {".py", ".md", ".json", ".html", ".css", ".js", ".ps1", ".yml", ".yaml"}
+FOLDERS = {"loveshe", "tests", "examples", "docs", "scripts", ".github", "ios"}
+SUFFIXES = {".py", ".md", ".json", ".html", ".css", ".js", ".ps1", ".yml", ".yaml",
+            ".swift", ".pbxproj", ".xcscheme", ".xcprivacy"}
 PUBLIC_IMAGES = {"docs/assets/banner.svg", "docs/assets/workflow.svg",
                  "docs/assets/demo-overview.jpg", "docs/assets/demo-history.jpg",
-                 "docs/assets/demo-replies.jpg", "docs/assets/demo-preview.jpg"}
+                 "docs/assets/demo-replies.jpg", "docs/assets/demo-preview.jpg",
+                 "ios/LoveShe/Assets.xcassets/AppIcon.appiconset/AppIcon.png"}
 
 
 def allowed(path):
     parts = path.parts
     return (path.as_posix() in ROOT_FILES or path.as_posix() in PUBLIC_IMAGES or (parts[0] in FOLDERS and path.suffix in SUFFIXES
-            and not any(p in {"__pycache__", ".pytest_cache"} for p in parts)
+            and not any(p in {"__pycache__", ".pytest_cache", "xcuserdata", "DerivedData"} for p in parts)
             and path.name not in {"model_config.json", "migrate_project_data.py", "recover_reference_errors.py"}))
 
 
@@ -48,6 +50,11 @@ def check(root=ROOT):
                 r"[A-Za-z]:[/\\]Users[/\\][^\s/\\]+",
                 r"\bwxid_[A-Za-z0-9]{8,}"]
     for relative in files:
+        if relative.as_posix() in PUBLIC_IMAGES and relative.suffix == ".png":
+            content = (root / relative).read_bytes()
+            if not content.startswith(b"\x89PNG\r\n\x1a\n") or len(content) > 2_000_000:
+                findings.append(f"Invalid app icon: {relative}")
+            continue
         if relative.as_posix() in PUBLIC_IMAGES and relative.suffix == ".jpg":
             content = (root / relative).read_bytes()
             if not content.startswith(b"\xff\xd8\xff") or len(content) > 2_000_000:
