@@ -117,7 +117,7 @@ def main():
  <ArchiveAction buildConfiguration="Release" revealArchiveInOrganizer="YES"/>
 </Scheme>
 '''
-    scheme = "\n".join(line + " <!-- pragma: allowlist secret -- deterministic Xcode IDs -->" if "BlueprintIdentifier" in line else line for line in scheme.splitlines()) + "\n"
+    scheme = "\n".join(line + " <!-- pragma: allowlist secret; deterministic Xcode IDs -->" if "BlueprintIdentifier" in line else line for line in scheme.splitlines()) + "\n"
     destination = project / "xcshareddata" / "xcschemes"
     destination.mkdir(parents=True, exist_ok=True)
     (destination / "LoveShe.xcscheme").write_text(scheme)
